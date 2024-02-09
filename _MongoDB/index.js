@@ -8,11 +8,22 @@ mongoose.connect('mongodb://localhost/testDatabase')
 //Schema
 
 const courseSchema = new mongoose.Schema({
-    name : String,
-    creator : String,
+    name : {type : String ,  required : true , minlength : 5 , maxlength : 100},
+    tags : {type: Array , validate : {
+        validator : function(tags){
+            return tags.length > 1
+        }
+    }},
+    category:{
+        type: String,
+        require: true,
+        enum:['DSA' , 'Web' , 'Mobile' ,  'DS & ML']
+
+    },
+    creator : {type : String ,  required : true},
     publishedDate : {type:Date , default:Date.now},
-    isPublished : Boolean,
-    rating :Number
+    isPublished : {type: Boolean ,  required:true},
+    rating :{type : Number , required : function(){return this.isPublished}}
 }) 
 
 // bluprint
@@ -22,18 +33,30 @@ const Course = mongoose.model('Course' , courseSchema)
 async function createCourse(){
 
     const course = new Course({
-        name:'BhaiLang',
-        creator:'Bhai',
+        name:'Nodejs',
+        tags:['express' , 'mongoDB'],
+        category:'Web',
+        creator:'Eren Yeager',
         isPublished: true,
-        rating: 3.6
-    })
+        rating:4.9
     
-    const result = await course.save()
-    console.log(result)
+    })
 
+    try {
+        const result = await course.save()
+        console.log(result)
+
+        // await course.validate()
+        
+    } catch (error) {
+        for(field in error.errors){
+            console.log(error.errors[field])
+        }
+        
+    }
 }
 
-// createCourse()
+createCourse()
 
 // >>> COMPARISION OPERATOR
 
@@ -61,7 +84,6 @@ async function getCourses(){
     console.log(courses)
 }
 
-
 // getCourses()
 
 
@@ -69,22 +91,12 @@ async function getCourses(){
 
 async function updateCourse(id){
 
-
     let course = await Course.findById(id)
-
-
     if(!course) return ;
-
     course.name = 'DS & ML'
-
     course.creator = 'Ram Prakash'
-
     const updatedCourse = await course.save()
-
     console.log(updatedCourse)
-
-     
-
 
 }
 
@@ -101,4 +113,4 @@ async function deleteCourse(id){
 
 }
 
-deleteCourse('65c5a94c1127941e5f915bbd')
+// deleteCourse('65c5a94c1127941e5f915bbd')
